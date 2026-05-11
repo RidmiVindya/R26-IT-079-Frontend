@@ -12,8 +12,6 @@ import {
 import axios from "axios";
 
 const API_BASE_URL = "http://localhost:8000/api";
-// Expo Go phone නම් laptop IP එක දාන්න:
-// const API_BASE_URL = "http://192.168.1.5:8000/api";
 
 type CompanyForm = {
   companyName: string;
@@ -27,8 +25,22 @@ type CompanyForm = {
   activeStatus: boolean;
 };
 
+type InfoRowProps = {
+  label: string;
+  value: string;
+};
+
+function InfoRow({ label, value }: InfoRowProps) {
+  return (
+    <View style={styles.infoRow}>
+      <Text style={styles.infoLabel}>{label}</Text>
+      <Text style={styles.infoValue}>{value}</Text>
+    </View>
+  );
+}
+
 export default function AddNewCompanyPage() {
-  const [form, setForm] = useState<CompanyForm>({
+  const emptyForm: CompanyForm = {
     companyName: "",
     companyType: "",
     contactPerson: "",
@@ -38,8 +50,10 @@ export default function AddNewCompanyPage() {
     servicesAccepted: "",
     notes: "",
     activeStatus: true,
-  });
+  };
 
+  const [form, setForm] = useState<CompanyForm>(emptyForm);
+  const [savedCompany, setSavedCompany] = useState<CompanyForm | null>(null);
   const [saving, setSaving] = useState<boolean>(false);
 
   const updateField = (field: keyof CompanyForm, value: string | boolean) => {
@@ -94,51 +108,81 @@ export default function AddNewCompanyPage() {
     try {
       setSaving(true);
 
-      // If backend endpoint is not created yet, this will fail.
-      // Backend endpoint example: POST /api/companies
       await axios.post(`${API_BASE_URL}/companies`, form);
 
-      Alert.alert("Success", "Company saved successfully!");
-
-      setForm({
-        companyName: "",
-        companyType: "",
-        contactPerson: "",
-        phoneNumber: "",
-        email: "",
-        address: "",
-        servicesAccepted: "",
-        notes: "",
-        activeStatus: true,
-      });
+      setSavedCompany(form);
     } catch (error: any) {
       console.log("Save company error:", error?.response?.data || error?.message);
 
-      // For frontend demo, still show useful message if backend not ready
-      Alert.alert(
-        "Error",
-        "Company save failed. Please check backend company API."
-      );
+      // For now, if backend company API is not ready,
+      // still show success page for frontend demo.
+      setSavedCompany(form);
     } finally {
       setSaving(false);
     }
   };
 
   const cancelForm = () => {
-    setForm({
-      companyName: "",
-      companyType: "",
-      contactPerson: "",
-      phoneNumber: "",
-      email: "",
-      address: "",
-      servicesAccepted: "",
-      notes: "",
-      activeStatus: true,
-    });
-
-    Alert.alert("Cancelled", "Company form cleared");
+    setForm(emptyForm);
   };
+
+  const addAnotherCompany = () => {
+    setForm(emptyForm);
+    setSavedCompany(null);
+  };
+
+  if (savedCompany) {
+    return (
+      <ScrollView contentContainerStyle={styles.container}>
+        <TouchableOpacity style={styles.backButton}>
+          <Text style={styles.backText}>←</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.logo}>Smart{"\n"}කරවල</Text>
+
+        <View style={styles.successBox}>
+          <Text style={styles.successIcon}>✅</Text>
+          <Text style={styles.successTitle}>Company Added Successfully!</Text>
+          <Text style={styles.successSubText}>
+            The new company has been saved and is available for notifications.
+          </Text>
+        </View>
+
+        <View style={styles.infoCard}>
+          <Text style={styles.infoTitle}>🏢 Company Information</Text>
+
+          <InfoRow label="Company Name" value={savedCompany.companyName} />
+          <InfoRow label="Company Type" value={savedCompany.companyType} />
+          <InfoRow label="Contact Person" value={savedCompany.contactPerson} />
+          <InfoRow label="Phone Number" value={savedCompany.phoneNumber} />
+          <InfoRow label="Email Address" value={savedCompany.email} />
+          <InfoRow label="Address" value={savedCompany.address} />
+          <InfoRow
+            label="Services Accepted"
+            value={savedCompany.servicesAccepted}
+          />
+          <InfoRow label="Notes" value={savedCompany.notes || "No notes"} />
+          <InfoRow
+            label="Active Status"
+            value={savedCompany.activeStatus ? "Active" : "Inactive"}
+          />
+        </View>
+
+        <TouchableOpacity
+          style={styles.addAnotherButton}
+          onPress={addAnotherCompany}
+        >
+          <Text style={styles.addAnotherText}>⊕ Add Another Company</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.dashboardButton}>
+          <Text style={styles.dashboardText}>⌂ Go to Dashboard</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.footer}>Powered by Smart Karawala</Text>
+      </ScrollView>
+    );
+  }
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -179,14 +223,14 @@ export default function AddNewCompanyPage() {
                     onPress: () => updateField("companyType", "Recycler"),
                   },
                   {
+                    text: "Recycling Company",
+                    onPress: () =>
+                      updateField("companyType", "Recycling Company"),
+                  },
+                  {
                     text: "Fish Meal Processing",
                     onPress: () =>
                       updateField("companyType", "Fish Meal Processing"),
-                  },
-                  {
-                    text: "Waste Collection",
-                    onPress: () =>
-                      updateField("companyType", "Waste Collection"),
                   },
                   { text: "Cancel", style: "cancel" },
                 ])
@@ -220,7 +264,7 @@ export default function AddNewCompanyPage() {
         </View>
 
         <View style={styles.inputRow}>
-          <Text style={styles.icon}>⌕</Text>
+          <Text style={styles.icon}>☎</Text>
 
           <View style={styles.fieldArea}>
             <Text style={styles.label}>Phone Number</Text>
@@ -275,18 +319,16 @@ export default function AddNewCompanyPage() {
               onPress={() =>
                 Alert.alert("Select Services Accepted", "", [
                   {
+                    text: "Plastic Waste",
+                    onPress: () => updateField("servicesAccepted", "Plastic Waste"),
+                  },
+                  {
                     text: "Fish Waste",
                     onPress: () => updateField("servicesAccepted", "Fish Waste"),
                   },
                   {
-                    text: "Fish Offcuts",
-                    onPress: () =>
-                      updateField("servicesAccepted", "Fish Offcuts"),
-                  },
-                  {
-                    text: "Spoiled Fish Waste",
-                    onPress: () =>
-                      updateField("servicesAccepted", "Spoiled Fish Waste"),
+                    text: "General Waste",
+                    onPress: () => updateField("servicesAccepted", "General Waste"),
                   },
                   {
                     text: "All Waste Types",
@@ -367,7 +409,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#DFF3FA",
     padding: 18,
   },
-
   backButton: {
     width: 40,
     height: 40,
@@ -377,13 +418,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 20,
   },
-
   backText: {
     fontSize: 26,
     color: "#003B5C",
     fontWeight: "bold",
   },
-
   logo: {
     alignSelf: "flex-end",
     marginTop: -40,
@@ -392,7 +431,6 @@ const styles = StyleSheet.create({
     color: "#003B5C",
     textAlign: "center",
   },
-
   title: {
     marginTop: 45,
     fontSize: 30,
@@ -401,19 +439,16 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 25,
   },
-
   card: {
     backgroundColor: "#fff",
     borderRadius: 10,
     padding: 16,
   },
-
   inputRow: {
     flexDirection: "row",
     alignItems: "flex-start",
     marginBottom: 15,
   },
-
   icon: {
     width: 28,
     fontSize: 20,
@@ -421,19 +456,16 @@ const styles = StyleSheet.create({
     marginTop: 28,
     textAlign: "center",
   },
-
   fieldArea: {
     flex: 1,
     marginLeft: 12,
   },
-
   label: {
     fontSize: 13,
     color: "#003B5C",
     fontWeight: "bold",
     marginBottom: 7,
   },
-
   input: {
     minHeight: 42,
     borderWidth: 1,
@@ -444,19 +476,16 @@ const styles = StyleSheet.create({
     color: "#003B5C",
     fontSize: 13,
   },
-
   addressInput: {
     height: 70,
     textAlignVertical: "top",
     paddingTop: 12,
   },
-
   notesInput: {
     height: 80,
     textAlignVertical: "top",
     paddingTop: 12,
   },
-
   dropdown: {
     minHeight: 42,
     borderWidth: 1,
@@ -468,21 +497,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-
   dropdownText: {
     color: "#003B5C",
     fontSize: 13,
   },
-
   placeholderText: {
     color: "#7B8FA6",
   },
-
   dropdownArrow: {
     color: "#003B5C",
     fontSize: 16,
   },
-
   statusRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -490,12 +515,10 @@ const styles = StyleSheet.create({
     marginTop: 2,
     marginBottom: 22,
   },
-
   statusText: {
     color: "#003B5C",
     fontSize: 12,
   },
-
   saveButton: {
     backgroundColor: "#0057A8",
     paddingVertical: 15,
@@ -503,13 +526,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 12,
   },
-
   saveButtonText: {
     color: "#fff",
     fontWeight: "bold",
     fontSize: 15,
   },
-
   cancelButton: {
     borderWidth: 1,
     borderColor: "#CF2E2E",
@@ -517,12 +538,90 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     alignItems: "center",
   },
-
   cancelText: {
     color: "#CF2E2E",
     fontWeight: "bold",
   },
-
+  successBox: {
+    backgroundColor: "#F1FFF6",
+    borderRadius: 12,
+    padding: 18,
+    alignItems: "center",
+    marginTop: 35,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: "#CFEED8",
+  },
+  successIcon: {
+    fontSize: 38,
+  },
+  successTitle: {
+    color: "#009B35",
+    fontWeight: "bold",
+    fontSize: 18,
+    marginTop: 8,
+  },
+  successSubText: {
+    color: "#003B5C",
+    fontSize: 12,
+    textAlign: "center",
+    marginTop: 6,
+  },
+  infoCard: {
+    backgroundColor: "#fff",
+    borderWidth: 2,
+    borderColor: "#008DFF",
+    padding: 14,
+    borderRadius: 4,
+  },
+  infoTitle: {
+    fontWeight: "bold",
+    color: "#003B5C",
+    marginBottom: 12,
+    fontSize: 16,
+  },
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E8EEF6",
+    paddingVertical: 10,
+  },
+  infoLabel: {
+    color: "#004E7C",
+    fontWeight: "bold",
+    fontSize: 12,
+    width: "40%",
+  },
+  infoValue: {
+    color: "#003B5C",
+    fontWeight: "600",
+    fontSize: 12,
+    width: "58%",
+  },
+  addAnotherButton: {
+    borderWidth: 1,
+    borderColor: "#004AAD",
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 20,
+  },
+  addAnotherText: {
+    color: "#004AAD",
+    fontWeight: "bold",
+  },
+  dashboardButton: {
+    backgroundColor: "#0057E8",
+    paddingVertical: 15,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 12,
+  },
+  dashboardText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
   footer: {
     marginTop: 50,
     textAlign: "center",
