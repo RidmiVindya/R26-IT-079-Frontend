@@ -34,6 +34,8 @@ export default function WasteNotificationPage() {
   const [message, setMessage] = useState<string>("");
   const [sending, setSending] = useState<boolean>(false);
 
+  const [successMessage, setSuccessMessage] = useState<string>("");
+
   const companies: Company[] = [
     {
       id: 1,
@@ -93,7 +95,14 @@ export default function WasteNotificationPage() {
         }
       );
 
-      Alert.alert("Success", "Waste notification sent successfully!");
+      setSuccessMessage("Waste notification sent successfully!");
+
+      setTimeout(() => {
+        setSuccessMessage("");
+      }, 3000);
+
+      setMessage("");
+
       console.log("Notification saved:", res.data);
     } catch (error: any) {
       console.log(
@@ -122,6 +131,23 @@ export default function WasteNotificationPage() {
       </TouchableOpacity>
 
       <Text style={styles.logo}>Smart{"\n"}කරවල</Text>
+
+      {successMessage ? (
+        <View style={styles.successAlert}>
+          <View style={styles.successIconBox}>
+            <Text style={styles.successIcon}>✓</Text>
+          </View>
+
+          <View style={styles.successTextArea}>
+            <Text style={styles.successTitle}>Success</Text>
+            <Text style={styles.successMessage}>{successMessage}</Text>
+          </View>
+
+          <TouchableOpacity onPress={() => setSuccessMessage("")}>
+            <Text style={styles.closeText}>×</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
 
       <Text style={styles.title}>Waste notification</Text>
 
@@ -191,7 +217,10 @@ export default function WasteNotificationPage() {
         <Text style={styles.charCount}>{message.length}/200</Text>
 
         <TouchableOpacity
-          style={styles.sendButton}
+          style={[
+            styles.sendButton,
+            sending && { backgroundColor: "#7BAAD6" },
+          ]}
           onPress={sendNotification}
           disabled={sending}
         >
@@ -242,8 +271,53 @@ const styles = StyleSheet.create({
     color: "#003B5C",
     textAlign: "center",
   },
+
+  successAlert: {
+    marginTop: 35,
+    backgroundColor: "#E9FBEF",
+    borderColor: "#41B36A",
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 12,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  successIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#CFF5DA",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+  },
+  successIcon: {
+    color: "#168A3A",
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  successTextArea: {
+    flex: 1,
+  },
+  successTitle: {
+    color: "#146B32",
+    fontWeight: "bold",
+    fontSize: 14,
+  },
+  successMessage: {
+    color: "#146B32",
+    fontSize: 12,
+    marginTop: 2,
+  },
+  closeText: {
+    color: "#146B32",
+    fontSize: 24,
+    fontWeight: "bold",
+    paddingHorizontal: 6,
+  },
+
   title: {
-    marginTop: 45,
+    marginTop: 25,
     fontSize: 32,
     fontWeight: "bold",
     color: "#004E7C",
@@ -358,7 +432,7 @@ const styles = StyleSheet.create({
   },
   textArea: {
     borderWidth: 1,
-    borderColor: "#DCE7F5",
+    borderColor: "#408ef3",
     borderRadius: 10,
     padding: 12,
     marginTop: 12,

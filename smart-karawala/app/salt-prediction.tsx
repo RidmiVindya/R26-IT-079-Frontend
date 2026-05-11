@@ -11,8 +11,6 @@ import {
 import axios from "axios";
 
 const API_BASE_URL = "http://localhost:8000/api";
-// Expo Go phone නම් laptop IP එක දාන්න:
-// const API_BASE_URL = "http://192.168.1.5:8000/api";
 
 type Batch = {
   batchId: string;
@@ -107,7 +105,7 @@ export default function SaltPredictionPage() {
       setPredicting(true);
 
       const res = await axios.post<SaltPredictionResponse>(
-        `${API_BASE_URL}/batches/${batch.batchId}/predict-salt`,
+         `http://localhost:8000/api/batches/${batch.batchId}/predict-salt`,
         {
           cleanedWeight,
         }
@@ -356,7 +354,7 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 8,
     marginLeft: 6,
-    maxWidth: 72,
+    maxWidth: 100,
   },
   batchSmall: {
     fontSize: 8,
@@ -364,7 +362,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   batchText: {
-    fontSize: 8,
+    fontSize: 10,
     color: "#003B5C",
     fontWeight: "bold",
   },

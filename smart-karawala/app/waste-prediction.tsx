@@ -67,7 +67,7 @@ export default function WastePredictionPage() {
       setPredicting(true);
 
       const response = await axios.post<PredictionResponse>(
-        `${API_BASE_URL}/batches/${batch.batchId}/predict-waste`
+        `http://localhost:8000/api/batches/${batch.batchId}/predict-waste`
       );
 
       setPrediction(response.data.batch);
